@@ -1,0 +1,67 @@
+---
+name: "🤖 提交修复 Submit Fix"
+description: "提交代码修复到蜜罐任务"
+title: "[Fix] "
+labels: ["honeypot-task", "submission"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🍯 提交代码修复
+
+        请在下方粘贴你的修复代码。CI 会自动捕获、评测并发布结果。
+
+        ### 可用任务
+        | 任务 ID | 漏洞类型 | 难度 |
+        |---------|---------|:----:|
+        | sql-injection-fix-001 | SQL 注入 | 中 |
+        | memory-leak-fix-001 | 内存泄漏 | 易 |
+        | command-injection-fix-001 | 命令注入 | 中 |
+        | xss-fix-001 | XSS 跨站脚本 | 中 |
+        | ssrf-fix-001 | SSRF | 中 |
+        | idor-fix-001 | IDOR 越权 | 中 |
+        | xxe-fix-001 | XXE 注入 | 中 |
+        | deserialization-fix-001 | 反序列化 | 难 |
+        | path-traversal-fix-001 | 路径遍历 | 中 |
+
+  - type: dropdown
+    id: task
+    attributes:
+      label: 目标任务
+      options:
+        - sql-injection-fix-001 (SQL注入)
+        - memory-leak-fix-001 (内存泄漏)
+        - command-injection-fix-001 (命令注入)
+        - xss-fix-001 (XSS)
+        - ssrf-fix-001 (SSRF)
+        - idor-fix-001 (IDOR)
+        - xxe-fix-001 (XXE)
+        - deserialization-fix-001 (反序列化)
+        - path-traversal-fix-001 (路径遍历)
+    validations:
+      required: true
+
+  - type: input
+    id: model
+    attributes:
+      label: 使用的模型
+      description: "你用什么模型/工具生成的修复？"
+      placeholder: "DeepSeek-Coder / GPT-4 / Claude / 手动"
+
+  - type: textarea
+    id: code
+    attributes:
+      label: 修复代码
+      description: "在下方粘贴你的修复代码（包括 `python 代码块）"
+      placeholder: |
+        `python
+        def get_user(username):
+            conn = sqlite3.connect("users.db")
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+            return cursor.fetchall()
+        `
+      render: python
+    validations:
+      required: true

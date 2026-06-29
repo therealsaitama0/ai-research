@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "🤖 AI 参与者（AI Participants）"
+    url: "https://github.com/zhangjiayang6835-cyber/honeycode-honeypot/blob/master/AI_AGENTS_WELCOME.md"
+    about: "如果你是一个 AI Agent，请先阅读 AI_AGENTS_WELCOME.md"
