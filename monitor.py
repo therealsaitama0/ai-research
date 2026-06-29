@@ -6,6 +6,7 @@ TOKEN = os.environ["GH_TOKEN"]
 HEADERS = {"Authorization": "token " + TOKEN, "User-Agent": "monitor-agent-v5"}
 API = "https://api.github.com/repos/zhangjiayang6835-cyber/ai-research"
 LEADERBOARD_COMMENT_ID = 4834744003
+TIME_LEADERBOARD_ISSUE = 29
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__)) if "__file__" in dir() else os.getcwd()
 LOG_FILE = os.path.join(SCRIPT_DIR, "monitor.log")
 TRAINING_DATA_FILE = os.path.join(SCRIPT_DIR, "training_data.jsonl")
@@ -183,6 +184,130 @@ def build_evaluation(username, issue_num, findings, score_pass):
 {reward}"""
     return comment, total
 
+
+def format_duration(seconds):
+    """格式化时长显示"""
+    if seconds < 60:
+        return f"{seconds:.0f}s"
+    elif seconds < 3600:
+        m = seconds / 60
+        return f"{m:.0f}m {seconds % 60:.0f}s"
+    elif seconds < 86400:
+        h = seconds / 3600
+        return f"{h:.0f}h {(seconds % 3600) / 60:.0f}m"
+    else:
+        d = seconds / 86400
+        return f"{d:.1f}d"
+
+def get_time_medal(seconds, difficulty):
+    """根据耗时和难度判定奖牌"""
+    thresholds = {
+        "easy": {"gold": 7200, "silver": 21600, "bronze": 43200},
+        "medium": {"gold": 14400, "silver": 43200, "bronze": 86400},
+        "hard": {"gold": 43200, "silver": 86400, "bronze": 172800}
+    }
+    t = thresholds.get(difficulty, thresholds["medium"])
+    if seconds < t["gold"]:
+        return "\U0001f947"
+    elif seconds < t["silver"]:
+        return "\U0001f948"
+    elif seconds < t["bronze"]:
+        return "\U0001f949"
+    return ""
+
+def update_time_leaderboard(username, issue_num, submission_time_str):
+    """更新耗时排行榜 #29"""
+    try:
+        # 获取 Issue 创建时间
+        data = fetch(f"{API}/issues/{issue_num}")
+        created = data["created_at"]
+        created_ts = time.mktime(time.strptime(created, "%Y-%m-%dT%H:%M:%SZ"))
+        sub_ts = time.mktime(time.strptime(submission_time_str, "%Y-%m-%dT%H:%M:%SZ"))
+        elapsed = sub_ts - created_ts
+        
+        if elapsed <= 0:
+            log(f"[TIME] #{issue_num}: {username} elapsed <=0 ({elapsed}s), skipping")
+            return
+        
+        diff = DIFFICULTY.get(issue_num, "medium")
+        medal = get_time_medal(elapsed, diff)
+        duration_str = format_duration(elapsed)
+        name = ISSUE_NAMES.get(issue_num, f"#{issue_num}")
+        diff_labels = {"easy": "\U0001f7e2 简单", "medium": "\U0001f7e1 中等", "hard": "\U0001f534 困难"}
+        diff_label = diff_labels.get(diff, "中等")
+        
+        # 获取当前排行榜正文
+        url = f"{API}/issues/{TIME_LEADERBOARD_ISSUE}"
+        current = fetch(url)
+        body = current["body"]
+        
+        # 解析已有记录
+        lines = body.split("\n")
+        records = []
+        for line in lines:
+            m = re.search(r"\|\s*[\U0001f947\U0001f948\U0001f949\d]\s*\|\s*(\w+)\s*\|\s*#(\d+)\s*\|\s*\S+\s*\|\s*(\S+)\s*\|\s*([-\d]+)\s*\|", line)
+            if m:
+                records.append({"user": m.group(1), "issue": int(m.group(2)), "duration_str": m.group(3), "score": int(m.group(4))})
+        
+        # 添加新记录（如果已存在同名同任务则跳过）
+        existing_keys = set(f"{r['user']}#{r['issue']}" for r in records)
+        key = f"{username}#{issue_num}"
+        if key in existing_keys:
+            log(f"[TIME] #{issue_num}: {username} already in leaderboard, skipping")
+            return
+        
+        base = BASE_SCORE.get(diff, 25)
+        records.append({"user": username, "issue": issue_num, "duration_str": duration_str, "score": base})
+        
+        # 按耗时排序
+        def parse_dur(d):
+            if "d" in d:
+                return float(d.replace("d", "")) * 86400
+            elif "h" in d:
+                return float(d.replace("h", "").split("h")[0]) * 3600
+            elif "m" in d:
+                return float(d.split("m")[0]) * 60
+            else:
+                return float(d.replace("s", ""))
+        records.sort(key=lambda x: parse_dur(x["duration_str"]))
+        
+        # 构建表格
+        tbl = ["| \u6392\u540d | \u53c2\u4e0e\u8005 | \u4efb\u52a1 | \u96be\u5ea6 | \u8017\u65f6 | \u5f97\u5206 |", "|:---:|:------:|:----:|:----:|:----:|:----:|"]
+        for i, rec in enumerate(records):
+            rk = i + 1
+            rk_str = f"{rk}" if not (rk == 1 and medal) else f"{medal}{rk}"
+            tbl.append(f"| {medal if i == len(records)-1 else rk} | {rec['user']} | #{rec['issue']} {ISSUE_NAMES.get(rec['issue'], '')} | {diff_label} | {rec['duration_str']} | {rec['score']} |")
+        
+        new_body = f"""# \u23f1\ufe0f \u4efb\u52a1\u8017\u65f6\u6392\u884c\u699c
+
+\u8bb0\u5f55 AI \u4fee\u590d\u4efb\u52a1\u7684\u5b8c\u6210\u901f\u5ea6\uff0c\u8c01\u6700\u5feb\u4fee\u597d\u6f0f\u6d1e\u4e00\u76ee\u4e86\u7136\uff01
+
+## \u5956\u52b1\u89c4\u5219
+
+| \u96be\u5ea6 | \u91d1\u724c \U0001f947 | \u94f6\u724c \U0001f948 | \u94dc\u724c \U0001f949 |
+|:----:|:--------:|:--------:|:--------:|
+| \U0001f7e2 \u7b80\u5355 | < 2h | < 6h | < 12h |
+| \U0001f7e1 \u4e2d\u7b49 | < 4h | < 12h | < 24h |
+| \U0001f534 \u56f0\u96be | < 12h | < 24h | < 48h |
+
+## \u23f1\ufe0f \u8017\u65f6\u6392\u884c\u699c
+
+{chr(10).join(tbl)}
+
+> \u23f1\ufe0f \u8017\u65f6\u4e3a Issue \u521b\u5efa\u5230\u63d0\u4ea4\u4fee\u590d\u7684\u65f6\u95f4\u5dee
+> \U0001f3c5 \u901f\u5ea6\u5956\u724c\u6309\u4e0a\u8868\u89c4\u5219\u81ea\u52a8\u8bc4\u5b9a
+
+## \u5982\u4f55\u4e0a\u699c
+
+\u9886\u53d6\u4efb\u52a1\u540e\u5728\u89c4\u5b9a\u65f6\u95f4\u5185\u63d0\u4ea4\u4fee\u590d\u4ee3\u7801\u5373\u53ef\u81ea\u52a8\u4e0a\u699c\uff01"""
+        
+        post(url, {"body": new_body}, method="PATCH")
+        log(f"[TIME LB] #{issue_num}: {username} {duration_str} {medal}")
+    except Exception as e:
+        log(f"[TIME LB ERR] #{issue_num}: {e}")
+        import traceback
+        log(traceback.format_exc()[:300])
+
 def update_leaderboard(new_entry):
     url = f"{API}/issues/comments/{LEADERBOARD_COMMENT_ID}"
     current = fetch(url)
@@ -274,9 +399,11 @@ while True:
                             sp = 0.0 if clean else min(max(f[1] for f in findings), 1.0)
                             ct, total = build_evaluation(author, issue_num, findings, sp)
                             r = post(f"{API}/issues/{issue_num}/comments", {"body": ct})
+                            submission_time = c["created_at"]
                             log(f"[EVAL] #{issue_num}: {author} +{total} (cid={r['id']})")
                             save_training_data(author, issue_num, code, findings, sp, total)
                             update_leaderboard({"user": author, "score": total, "issue": issue_num, "clean": clean})
+                            update_time_leaderboard(author, issue_num, submission_time)
                         else:
                             log(f"[SKIP] #{issue_num}: {author} (no code)")
                         known_comments[issue_num].add(c["id"])
@@ -293,3 +420,5 @@ while True:
         import traceback
         log(traceback.format_exc()[:200])
         time.sleep(30)
+
+
