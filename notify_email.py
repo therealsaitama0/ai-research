@@ -1,8 +1,16 @@
-import smtplib, ssl, sys, json
+import smtplib, ssl, sys, json, os
 from email.mime.text import MIMEText
 
 def send_notification(event_type, username, issue_num, details):
     ts = __import__("time").strftime("%Y-%m-%d %H:%M:%S")
+    smtp_user = os.environ.get("SMTP_USER", "")
+    smtp_password = os.environ.get("SMTP_PASSWORD", "")
+    notify_from = os.environ.get("NOTIFY_FROM", "")
+    notify_to = os.environ.get("NOTIFY_TO", "")
+    
+    if not all([smtp_user, smtp_password, notify_from]):
+        print("[EMAIL] Skipped: SMTP not configured (set SMTP_USER, SMTP_PASSWORD, NOTIFY_FROM env vars)")
+        return
     
     if event_type == "submission":
         subject = f"[AI Research] {username} submitted fix for #{issue_num}"
@@ -35,15 +43,18 @@ def send_notification(event_type, username, issue_num, details):
     
     msg = MIMEText(html, "html", "utf-8")
     msg["Subject"] = subject
-    msg["From"] = "2593697591@QQ.com"
-    msg["To"] = "2593697591@QQ.com"
+    msg["From"] = notify_from
+    msg["To"] = notify_to or notify_from
     
     ctx = ssl.create_default_context()
     with smtplib.SMTP_SSL("smtp.qq.com", 465, context=ctx) as s:
-        s.login("2593697591@QQ.com", "hwazivgrdiofebaj")
-        s.sendmail("2593697591@QQ.com", "2593697591@QQ.com", msg.as_string())
+        s.login(smtp_user, smtp_password)
+        s.sendmail(notify_from, notify_to or notify_from, msg.as_string())
     print(f"[EMAIL] {subject}")
 
 if __name__ == "__main__":
     event = json.loads(sys.stdin.read())
+    if "api_key" not in event and not os.environ.get("NOTIFY_API_KEY", ""):
+        print("[EMAIL] Hidden CLI endpoint blocked: no API key provided. Set NOTIFY_API_KEY env var.")
+        sys.exit(1)
     send_notification(event["type"], event["user"], event["issue"], event.get("details", {}))
