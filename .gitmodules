@@ -6,4 +6,4 @@
 	url = https://github.com/zhangjiayang6835-cyber/eval-engine.git
 [submodule "ai-training-gym"]
 	path = ai-training-gym
-	url = https://github.com/zhangjiayang6835-cyber/ai-training-gym.git
+	url = https://github.com/therealsaitama0/ai-training-gym.git

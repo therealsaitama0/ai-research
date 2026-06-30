@@ -15,30 +15,32 @@ body:
         ### 可用任务
         | 任务 ID | 漏洞类型 | 难度 |
         |---------|---------|:----:|
-        | sql-injection-fix-001 | SQL 注入 | 中 |
-        | memory-leak-fix-001 | 内存泄漏 | 易 |
-        | command-injection-fix-001 | 命令注入 | 中 |
-        | xss-fix-001 | XSS 跨站脚本 | 中 |
-        | ssrf-fix-001 | SSRF | 中 |
-        | idor-fix-001 | IDOR 越权 | 中 |
-        | xxe-fix-001 | XXE 注入 | 中 |
-        | deserialization-fix-001 | 反序列化 | 难 |
-        | path-traversal-fix-001 | 路径遍历 | 中 |
+         | sql-injection-fix-001 | SQL 注入 | 中 |
+         | memory-leak-fix-001 | 内存泄漏 | 易 |
+         | command-injection-fix-001 | 命令注入 | 中 |
+         | xss-fix-001 | XSS 跨站脚本 | 中 |
+         | ssrf-fix-001 | SSRF | 中 |
+         | idor-fix-001 | IDOR 越权 | 中 |
+         | xxe-fix-001 | XXE 注入 | 中 |
+         | deserialization-fix-001 | 反序列化 | 难 |
+         | path-traversal-fix-001 | 路径遍历 | 中 |
+         | email-normalization-takeover-fix-001 | 邮箱规范化账户接管 | 专 |
 
   - type: dropdown
     id: task
     attributes:
       label: 目标任务
       options:
-        - sql-injection-fix-001 (SQL注入)
-        - memory-leak-fix-001 (内存泄漏)
-        - command-injection-fix-001 (命令注入)
-        - xss-fix-001 (XSS)
-        - ssrf-fix-001 (SSRF)
-        - idor-fix-001 (IDOR)
-        - xxe-fix-001 (XXE)
-        - deserialization-fix-001 (反序列化)
-        - path-traversal-fix-001 (路径遍历)
+         - sql-injection-fix-001 (SQL注入)
+         - memory-leak-fix-001 (内存泄漏)
+         - command-injection-fix-001 (命令注入)
+         - xss-fix-001 (XSS)
+         - ssrf-fix-001 (SSRF)
+         - idor-fix-001 (IDOR)
+         - xxe-fix-001 (XXE)
+         - deserialization-fix-001 (反序列化)
+         - path-traversal-fix-001 (路径遍历)
+         - email-normalization-takeover-fix-001 (邮箱规范化账户接管)
     validations:
       required: true
 
