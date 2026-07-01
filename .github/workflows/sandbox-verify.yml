@@ -32,10 +32,10 @@ jobs:
       - name: Create Vulnerable App
         run: |
           cat > /tmp/sandbox/vuln_app.py << 'VULN'
-#!/usr/bin/env python3
-"""Vulnerable application template - will be specialized per issue"""
-import subprocess
-import os
+          #!/usr/bin/env python3
+          """Vulnerable application template - will be specialized per issue"""
+          import subprocess
+          import os
 
 # Example: Command injection vulnerability
 def vulnerable_function(user_input):
