@@ -39,6 +39,13 @@ jobs:
               pull_number: prNum
             });
 
+            // Load shared cheat-detect engine
+            const { data: detectScript } = await github.rest.repos.getContent({
+              owner: context.repo.owner, repo: context.repo.repo,
+              path: ".github/scripts/cheat-detect.js"
+            });
+            eval(Buffer.from(detectScript.content, "base64").toString());
+
             // 1. CHEAT DETECTION on all changed files
             const allFindings = [];
             let totalAdditions = 0;
