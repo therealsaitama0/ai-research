@@ -55,15 +55,17 @@ jobs:
               else if (title.includes("pickle")) vulnType = "pickle";
               else if (title.includes("escape") || title.includes("container")) vulnType = "escape";
               else if (title.includes("spoof")) vulnType = "spoofing";
+              else if (title.includes("federation") || title.includes("sso") || title.includes("tenant")) vulnType = "sso_federation";
 
               // Analyze the fix
               const addedLines = patch.split("\n").filter(l => l.startsWith("+") && !l.startsWith("+++"));
               const removedLines = patch.split("\n").filter(l => l.startsWith("-") && !l.startsWith("---"));
+              const patchLines = patch.split("\n");
 
               // Check for common fix patterns
-              const hasInputValidation = patch.some(l => /validate|sanitize|escape|strip/i.test(l));
-              const hasAuthCheck = patch.some(l => /auth|permission|role|access.*control/i.test(l));
-              const hasBoundsCheck = patch.some(l => /limit|max|check|bound|verify/i.test(l));
+              const hasInputValidation = patchLines.some(l => /validate|sanitize|escape|strip/i.test(l));
+              const hasAuthCheck = patchLines.some(l => /auth|permission|role|access.*control/i.test(l));
+              const hasBoundsCheck = patchLines.some(l => /limit|max|check|bound|verify/i.test(l));
 
               results.push({
                 file: filename,
@@ -105,6 +107,9 @@ jobs:
             }
             if (types.includes("rce")) {
               report += "| 🔒 RCE防护 | " + (results.some(r => r.hasBoundsCheck) ? "✅ 有安全检查" : "⚠️ 建议增加执行限制") + " |\n";
+            }
+            if (types.includes("sso_federation")) {
+              report += "| 🔒 SSO联邦防护 | " + (results.some(r => r.hasAuthCheck) ? "✅ 有权限验证" : "⚠️ 建议增加租户隔离检查") + " |\n";
             }
 
             // Check files that should NOT be modified

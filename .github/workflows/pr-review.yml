@@ -1,7 +1,7 @@
 name: PR Auto-Review & Score
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
 
 permissions:
@@ -91,7 +91,7 @@ jobs:
 
               // AI patterns in comments
               const commentPatterns = [
-                [/Here[']s (a|the|my) (fix|solution|implementation)/i, 'AI_greeting', 0.2],
+                [/Here[']s (a|the|my) (fix|solution|implementation)/i, 'AI_greeting', 0.15],
                 [/I[']ll (provide|implement|create|write|add)/i, 'AI_ill_provide', 0.15],
                 [/Sure[!,] (here|I)/i, 'AI_sure_here', 0.15],
                 [/(Certainly|Absolutely|Of course)[!,]/i, 'AI_certainly', 0.15],
@@ -165,7 +165,6 @@ jobs:
 
             report += `---\n*🤖 自动审查 by AI Training Bot*\n`;
 
-            
             // QUALITY SCORING
             let qualityScore = 100;
             const qualityNotes = [];
@@ -174,7 +173,7 @@ jobs:
             else if (totalAdditions > 500) { qualityScore -= 10; qualityNotes.push("too large"); }
             const hasTests = files.some(f => /test|spec/i.test(f.filename));
             if (!hasTests) { qualityScore -= 10; qualityNotes.push("no tests"); }
-            const combinedScore = Math.round((score + qualityScore) / 2);
+            const combinedScore = Math.round((totalScore + qualityScore) / 2);
             console.log("Quality score: " + qualityScore + "/100, Combined: " + combinedScore + "/100");
 
             // AI ANALYSIS
@@ -184,7 +183,7 @@ jobs:
             if (!hasTests) console.log("Tip: Add tests to verify the fix");
 
             // Auto-label
-            if (score >= 80 && qualityScore >= 70 && totalAdditions >= 5) {
+            if (totalScore >= 80 && qualityScore >= 70 && totalAdditions >= 5) {
               const labels = pr.labels.map(l => l.name);
               if (!labels.includes("auto-reviewed")) {
                 await github.rest.issues.addLabels({ issue_number: pr.number, owner: context.repo.owner, repo: context.repo.repo, labels: ["auto-reviewed"] });
