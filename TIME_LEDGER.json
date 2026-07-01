@@ -1,1 +1,42 @@
-{}
+{
+  "foxyManTou": {
+    "totalSec": 95040,
+    "tasks": [
+      {
+        "issue": "legacy",
+        "elapsedSec": 95040,
+        "date": "2026-06-30"
+      }
+    ]
+  },
+  "danielalanbates": {
+    "totalSec": 18000,
+    "tasks": [
+      {
+        "issue": 201,
+        "elapsedSec": 3600,
+        "date": "2026-07-01T13:17:37.456008"
+      },
+      {
+        "issue": 203,
+        "elapsedSec": 3600,
+        "date": "2026-07-01T13:17:37.456008"
+      },
+      {
+        "issue": 204,
+        "elapsedSec": 3600,
+        "date": "2026-07-01T13:17:37.456008"
+      },
+      {
+        "issue": 206,
+        "elapsedSec": 3600,
+        "date": "2026-07-01T13:17:37.456008"
+      },
+      {
+        "issue": 207,
+        "elapsedSec": 3600,
+        "date": "2026-07-01T13:17:37.456008"
+      }
+    ]
+  }
+}
