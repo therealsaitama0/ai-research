@@ -147,12 +147,7 @@ jobs:
               owner, repo, pull_number: prNum,
               merge_method: "squash",
               commit_title: `fix: ${pr.title} (auto-merged #${prNum})`,
-              commit_message: `Auto-merged by AI Training Bot.
-
-${qualityBadge}✅ Score passed
-🔍 No cheating detected
-
-> 💡 虚拟代币仅供学习排名使用，不可兑换为现金或加密货币。感谢贡献！🎉`
+              commit_message: `Auto-merged by AI Training Bot.\n${qualityBadge}✅ Score passed\n🔍 No cheating detected\n\n> 💡 虚拟代币仅供学习排名使用，不可兑换为现金或加密货币。感谢贡献！🎉``
             });
             console.log(`PR #${prNum}: MERGED successfully!`);
             } catch (e) {
